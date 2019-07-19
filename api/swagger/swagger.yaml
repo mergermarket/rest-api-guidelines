@@ -1,0 +1,119 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: Hello World App
+# during dev, should point to your local machine
+host: localhost:10010
+# basePath prefixes all resource paths 
+basePath: /
+# 
+schemes:
+  # tip: remove http to make production-grade
+  - http
+  - https
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+  /reviews/{reviewId}:
+    # binds a127 app logic to a route
+    x-swagger-router-controller: review
+    get:
+      description: Returns a specific review by ID
+      # used as the method name of the controller
+      operationId: getReviewById
+      parameters:
+        - name: reviewId
+          in: path
+          description: The ID of the review
+          required: true
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            # a pointer to a definition
+            $ref: "#/definitions/IndividualReviewResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /reviews/search:
+    x-swagger-router-controller: review
+    get:
+      description: Returns paginated list of reviews
+      operationId: searchReviews
+      parameters:
+        - name: nextCursor
+          in: query
+          required: false
+          type: string
+        - name: country
+          in: query
+          required: false
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/ListOfReviewsResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /reviews:
+    x-swagger-router-controller: review
+    get:
+      description: Returns paginated list of reviews
+      operationId: listReviews
+      parameters:
+        - name: nextCursor
+          in: query
+          required: false
+          type: string
+        - name: country
+          in: query
+          required: false
+          type: string
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/ListOfReviewsResponse"
+        # responses may fall through to errors
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+definitions:
+  ListOfReviewsResponse:
+    required:
+      - approximateTotalCount
+      - results
+    properties:
+      approximateTotalCount:
+        type: number
+      results:
+        type: array
+        items:
+          $ref: "#/definitions/IndividualReviewResponse"
+  IndividualReviewResponse:
+    required:
+      - id
+    properties:
+      id:
+        type: string
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
