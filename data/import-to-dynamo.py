@@ -51,7 +51,8 @@ def convert_csv_to_json_list(file):
 
 
 def batch_write(items):
-    dynamodb = boto3.resource('dynamodb', endpoint_url='http://localhost:4569')
+    dynamodb = boto3.resource(
+        'dynamodb', endpoint_url='http://localstack:4569')
     db = dynamodb.Table('WineReviews')
 
     dynamodb.create_table(
