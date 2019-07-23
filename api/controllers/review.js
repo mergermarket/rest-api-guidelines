@@ -1,6 +1,6 @@
 "use strict";
 
-const { getById, list, search } = require('./../services/reviews-service')
+const { getById, list, search } = require("./../services/reviews-service");
 /*
  'use strict' is not required but helpful for turning syntactical errors into true errors in the program flow
  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode
@@ -40,31 +40,52 @@ module.exports = {
  */
 function getReviewById(req, res) {
   // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
-  const id = req.swagger.params.reviewId.value
+  const id = req.swagger.params.reviewId.value;
   getById(id).then(review => {
-    console.log(review)
+    console.log(review);
     // this sends back a JSON response which is a single string
     res.json(review);
-  })
+  });
+}
+
+function validateParams(req) {
+  const validParams = Object.keys(req.swagger.params);
+  const unknownParams = Object.keys(req.query).filter(
+    p => validParams.indexOf(p) === -1
+  );
+  const params = validParams
+    .map(p => ({
+      [p]: req.swagger.params[p].value
+    }))
+    .reduce((acc, val) => ({ ...acc, ...val }), {});
+
+  return { unknownParams, params };
+}
+
+function getWarnings(unknownParams) {
+  const warnings = {};
+  if (unknownParams && unknownParams.length > 0) {
+    warnings.message = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
+  }
+  return warnings;
 }
 
 function searchReviews(req, res) {
-    let country = null
-    if(req.swagger.params.country) {
-        country = req.swagger.params.country.value
-    }
-    search({country}).then(results => {
-        res.status(200).send(results)
-    }) 
+  const { params, unknownParams } = validateParams(req);
+  search(params).then(results => {
+    sendSuccessResponse(res, results, getWarnings(unknownParams));
+  });
 }
 
 function listReviews(req, res) {
-    let nextCursor = null
-    if(req.swagger.params.nextCursor) {
-        nextCursor = req.swagger.params.nextCursor.value
-    }
-    list({nextCursor}).then(results => {
-        res.status(200).send(results)
-    })
+  const { params, unknownParams } = validateParams(req);
+  list(params).then(results => {
+    sendSuccessResponse(res, results, getWarnings(unknownParams));
+  });
+}
 
+function sendSuccessResponse(res, results, warnings) {
+  res
+    .status(200)
+    .send([results, warnings].filter(val => Object.keys(val).length !== 0));
 }

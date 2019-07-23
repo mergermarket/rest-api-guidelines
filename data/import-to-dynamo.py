@@ -12,6 +12,7 @@ def convert_csv_to_json_list(file):
 
             data = {}
             data["id"] = row['']
+            data["kind"] = 'review'
             if row['country'] != "":
                 data["country"] = row['country']
 
@@ -53,7 +54,7 @@ def convert_csv_to_json_list(file):
 def batch_write(items):
     dynamodb = boto3.resource(
         'dynamodb', endpoint_url='http://localstack:4569')
-    db = dynamodb.Table('WineReviews')
+    db = dynamodb.Table('Wine')
 
     dynamodb.create_table(
         AttributeDefinitions=[
@@ -64,6 +65,10 @@ def batch_write(items):
             {
                 'AttributeName': 'geography',
                 'AttributeType': 'S',
+            },
+            {
+                'AttributeName': 'kind',
+                'AttributeType': 'S'
             }
         ],
         KeySchema=[
@@ -80,7 +85,29 @@ def batch_write(items):
             'ReadCapacityUnits': 5,
             'WriteCapacityUnits': 5,
         },
-        TableName='WineReviews',
+        TableName='Wine',
+        GlobalSecondaryIndexes=[
+            {
+                'IndexName': 'ArticlesByKind',
+                'KeySchema': [
+                    {
+                        'AttributeName': 'kind',
+                        'KeyType': 'HASH'
+                    },
+                    {
+                        'AttributeName': 'geography',
+                        'KeyType': 'RANGE'
+                    },
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL',
+                },
+                'ProvisionedThroughput': {
+                    'ReadCapacityUnits': 5,
+                    'WriteCapacityUnits': 5
+                }
+            }
+        ],
     )
 
     with db.batch_writer() as batch:

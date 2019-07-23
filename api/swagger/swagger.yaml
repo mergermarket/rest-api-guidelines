@@ -48,11 +48,15 @@ paths:
       description: Returns paginated list of reviews
       operationId: searchReviews
       parameters:
-        - name: nextCursor
+        - name: country
           in: query
           required: false
           type: string
-        - name: country
+        - name: size
+          in: query
+          required: false
+          type: number
+        - name: after
           in: query
           required: false
           type: string
@@ -72,10 +76,18 @@ paths:
       description: Returns paginated list of reviews
       operationId: listReviews
       parameters:
-        - name: nextCursor
+        - name: after
           in: query
           required: false
           type: string
+        - name: before
+          in: query
+          required: false
+          type: string
+        - name: size
+          in: query
+          required: false
+          type: number
         - name: country
           in: query
           required: false
@@ -96,7 +108,6 @@ paths:
 definitions:
   ListOfReviewsResponse:
     required:
-      - approximateTotalCount
       - results
     properties:
       approximateTotalCount:
