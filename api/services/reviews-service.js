@@ -81,20 +81,28 @@ const getResultKeys = result => ({
 const buildUrl = (path, params) =>
   `http://localhost:10010/${path}?${querystring.encode(params)}`;
 
+const geoBuilder = (str = "") => attr =>
+  !attr ? "" : str.length === 0 ? `${attr}` : `${geoStr}#${attr}`;
+
+// (geoStr, attr) => geoStr.length === 0 ? `${attr}` :`${geoStr}#${attr}`
+
 const list = async ({ after, size, country }) => {
-  let geography = null;
-  if (country) {
-    geography = country;
-  }
+  const buildGeography = geoBuilder();
+  geography = buildGeography(country);
+  const KeyConditionExpression = `kind = :hkey ${
+    geography ? "and begins_with(geography, :rkey)" : ""
+  }`;
+
+  const ExpressionAttributeValues = {
+    ":hkey": "review",
+    ...(geography ? { ":rkey": geography } : {})
+  };
+
   const params = {
     TableName: "Wine",
     IndexName: "ArticlesByKind",
-    KeyConditionExpression: `kind = :hkey ${geography &&
-      "and begins_with(geography, :rkey)"}`,
-    ExpressionAttributeValues: {
-      ":hkey": "review",
-      ":rkey": geography
-    },
+    KeyConditionExpression,
+    ExpressionAttributeValues,
     Limit: size
   };
 

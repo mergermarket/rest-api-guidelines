@@ -12,6 +12,7 @@
     "express": "^4.12.3",
     "install": "^0.13.0",
     "npm": "^6.10.0",
+    "query-string": "^6.8.1",
     "swagger-express-mw": "^0.1.0"
   },
   "devDependencies": {

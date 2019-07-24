@@ -1,6 +1,9 @@
 "use strict";
 
 const { getById, list, search } = require("./../services/reviews-service");
+const { reviewsByIds, reviewsByGeography } = require("../helpers/reviews");
+const querystring = require("query-string");
+
 /*
  'use strict' is not required but helpful for turning syntactical errors into true errors in the program flow
  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode
@@ -40,13 +43,14 @@ module.exports = {
  */
 function getReviewById(req, res) {
   // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
-  const id = req.swagger.params.reviewId.value;
-  getById(id).then(review => {
-    console.log(review);
-    // this sends back a JSON response which is a single string
-    res.json(review);
-  });
+  const result = reviewsByIds(req.swagger.params.reviewId.value);
+  res.status(200).send(result);
 }
+
+const urlBuilder = (host, path) => params =>
+  `http://${host}${path}?${querystring.stringify(params, {
+    arrayFormat: "comma"
+  })}`;
 
 function validateParams(req) {
   const validParams = Object.keys(req.swagger.params);
@@ -55,7 +59,12 @@ function validateParams(req) {
   );
   const params = validParams
     .map(p => ({
-      [p]: req.swagger.params[p].value
+      [p]:
+        req.swagger.params[p].value &&
+        typeof req.swagger.params[p].value === "string" &&
+        req.swagger.params[p].value.includes(",")
+          ? req.swagger.params[p].value.split(",")
+          : req.swagger.params[p].value
     }))
     .reduce((acc, val) => ({ ...acc, ...val }), {});
 
@@ -65,7 +74,7 @@ function validateParams(req) {
 function getWarnings(unknownParams) {
   const warnings = {};
   if (unknownParams && unknownParams.length > 0) {
-    warnings.message = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
+    warnings.warning = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
   }
   return warnings;
 }
@@ -79,13 +88,19 @@ function searchReviews(req, res) {
 
 function listReviews(req, res) {
   const { params, unknownParams } = validateParams(req);
-  list(params).then(results => {
-    sendSuccessResponse(res, results, getWarnings(unknownParams));
-  });
+  const buildUrl = urlBuilder(req.headers["host"], req.swagger.apiPath);
+  sendSuccessResponse(
+    res,
+    reviewsByGeography(params, buildUrl),
+    getWarnings(unknownParams)
+  );
 }
 
 function sendSuccessResponse(res, results, warnings) {
-  res
-    .status(200)
-    .send([results, warnings].filter(val => Object.keys(val).length !== 0));
+  const body = {
+    ...results,
+    ...(Object.keys(warnings).length !== 0 ? warnings : {})
+  };
+
+  res.status(200).send(body);
 }

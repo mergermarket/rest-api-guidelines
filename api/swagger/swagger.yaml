@@ -88,10 +88,11 @@ paths:
           in: query
           required: false
           type: number
-        - name: country
+        - name: countries
           in: query
           required: false
           type: string
+          collectionFormat: csv
       responses:
         "200":
           description: Success
