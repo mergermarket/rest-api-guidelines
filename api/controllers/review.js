@@ -1,7 +1,11 @@
 "use strict";
 
 const { getById, list, search } = require("./../services/reviews-service");
-const { reviewsByIds, reviewsByGeography } = require("../helpers/reviews");
+const {
+  reviewsByIds,
+  reviewsByGeography,
+  getReviews
+} = require("../helpers/reviews");
 const querystring = require("query-string");
 
 /*
@@ -99,7 +103,7 @@ function listReviews(req, res) {
 
   sendSuccessResponse(
     res,
-    reviewsByGeography(params, buildUrl),
+    getReviews(params, buildUrl),
     getWarnings(unknownParams, params)
   );
 }

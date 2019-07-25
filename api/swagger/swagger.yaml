@@ -93,6 +93,10 @@ paths:
           required: false
           type: string
           collectionFormat: csv
+        - name: q
+          in: query
+          required: false
+          type: string
       responses:
         "200":
           description: Success
