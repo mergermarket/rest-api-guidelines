@@ -71,12 +71,19 @@ function validateParams(req) {
   return { unknownParams, params };
 }
 
-function getWarnings(unknownParams) {
-  const warnings = {};
+function getWarnings(unknownParams, { after, before }) {
+  const response = {};
   if (unknownParams && unknownParams.length > 0) {
-    warnings.warning = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
+    response[
+      "warning-code-1"
+    ] = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
   }
-  return warnings;
+  if (after && before) {
+    response[
+      "warning-code-2"
+    ] = `"after" and "before" query parameters cannot be used together, after will take precidence`;
+  }
+  return response;
 }
 
 function searchReviews(req, res) {
@@ -89,10 +96,11 @@ function searchReviews(req, res) {
 function listReviews(req, res) {
   const { params, unknownParams } = validateParams(req);
   const buildUrl = urlBuilder(req.headers["host"], req.swagger.apiPath);
+
   sendSuccessResponse(
     res,
     reviewsByGeography(params, buildUrl),
-    getWarnings(unknownParams)
+    getWarnings(unknownParams, params)
   );
 }
 

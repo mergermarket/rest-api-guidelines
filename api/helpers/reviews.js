@@ -14,7 +14,8 @@ const reviewsByAttributes = (attrName, attrs) =>
         return [...acc, ...matching];
       }
     }, [])
-    .filter(Boolean);
+    .filter(Boolean)
+    .map(r => ({ id: r.id }));
 
 const reviewsByIds = (ids = []) => reviewsByAttributes("id", ids);
 
@@ -55,7 +56,10 @@ const reviewsByGeography = (
     beforePos !== -1 && afterPos !== -1 && offsetResults.length > size
       ? offsetResults
       : beforePos !== -1
-      ? offsetResults.reverse()
+      ? offsetResults
+          .reverse()
+          .slice(0, size)
+          .reverse()
       : offsetResults.slice(0, size);
 
   return {
