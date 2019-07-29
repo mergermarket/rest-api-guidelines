@@ -1,3 +1,5 @@
+const ReviewIterator = require("./review-iterator");
+
 const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
   const reviewsByAttributes = (attrName, attrs) =>
     reviewData
@@ -22,27 +24,73 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
 
   const reviewsByQuery = (reviews, query) => reviews.filter(byQuery(query));
 
-  const getOffsetResults = (startPos, endPos, list) => {
+  const getOffsetResults = ({
+    start = 0,
+    list = [],
+    size = list.length,
+    reverse = false
+  }) => {
     let offsetResults = [];
+    let beforeCursor;
+    let afterCursor;
 
-    if (endPos !== -1 && startPos !== -1) {
-      offsetResults = list.filter((r, idx) => idx > startPos && idx < endPos);
-    } else if (endPos === -1 && startPos !== -1) {
-      offsetResults = list.filter((r, idx) => idx > startPos);
-    } else if (endPos !== -1 && startPos === -1) {
-      offsetResults = list.filter((r, idx) => idx <= endPos);
-    } else {
-      console.log("ji");
-      offsetResults = list.filter((r, idx) => idx >= startPos);
+    const iterator = ReviewIterator(list);
+    iterator.setCursor(start);
+    offsetResults.push(iterator.current());
+
+    const direction = !reverse ? "next" : "previous";
+
+    if (!reverse) {
+      beforeCursor = iterator.hasPrev() ? iterator.current() : null;
     }
-    console.log(startPos, endPos, offsetResults);
-    return offsetResults;
+
+    for (i = 0; i < size - 1; i++) {
+      offsetResults.push(iterator[direction]());
+    }
+
+    if (reverse) {
+      beforeCursor = iterator.hasPrev() ? iterator.current() : null;
+    }
+
+    afterCursor = iterator.hasNext() ? iterator.current() : null;
+
+    return {
+      results: (!reverse ? offsetResults : offsetResults.reverse()).filter(
+        Boolean
+      ),
+      ...(beforeCursor ? { before: beforeCursor } : {}),
+      ...(afterCursor ? { after: afterCursor } : {})
+    };
+  };
+
+  const getReviews = ({
+    countries = [],
+    size = 10,
+    after = null,
+    before = null,
+    q = ""
+  }) => {
+    if (countries.length > 0) {
+      const allResults = reviewsByAttributes("country", countries);
+      const reverse = before;
+      return getOffsetResults({
+        start: after
+          ? allResults.findIndex(el => el.id === after) + 1 // after meaning after the element we found
+          : before
+          ? allResults.findIndex(el => el.id === before) - 1 // before meaning before the element we found
+          : 0,
+        list: allResults,
+        size,
+        reverse
+      });
+    }
   };
 
   return {
     reviewsByAttributes,
     reviewsByQuery,
-    getOffsetResults
+    getOffsetResults,
+    getReviews
   };
 };
 

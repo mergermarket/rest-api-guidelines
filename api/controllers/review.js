@@ -1,11 +1,7 @@
 "use strict";
 
 const { getById, list, search } = require("./../services/reviews-service");
-const {
-  reviewsByIds,
-  reviewsByGeography,
-  getReviews
-} = require("../helpers/reviews");
+const ReviewsService = require("../helpers/reviews")();
 const querystring = require("query-string");
 
 /*
@@ -100,12 +96,18 @@ function searchReviews(req, res) {
 function listReviews(req, res) {
   const { params, unknownParams } = validateParams(req);
   const buildUrl = urlBuilder(req.headers["host"], req.swagger.apiPath);
+  const results = ReviewsService.getReviews(params, buildUrl);
+  const { before, after, ...urlParams } = params;
 
-  sendSuccessResponse(
-    res,
-    getReviews(params, buildUrl),
-    getWarnings(unknownParams, params)
-  );
+  if (results.before) {
+    results.before = buildUrl({ ...urlParams, before: results.before.id });
+  }
+
+  if (results.after) {
+    results.after = buildUrl({ ...urlParams, after: results.after.id });
+  }
+
+  sendSuccessResponse(res, results, getWarnings(unknownParams, params));
 }
 
 function sendSuccessResponse(res, results, warnings) {
