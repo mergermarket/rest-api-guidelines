@@ -43,7 +43,9 @@ module.exports = {
  */
 function getReviewById(req, res) {
   // variables defined in the Swagger document can be referenced using req.swagger.params.{parameter_name}
-  const result = reviewsByIds(req.swagger.params.reviewId.value);
+  const result = ReviewsService.getReviewById(
+    req.swagger.params.reviewId.value
+  );
   res.status(200).send(result);
 }
 
@@ -63,7 +65,9 @@ function validateParams(req) {
         req.swagger.params[p].value &&
         typeof req.swagger.params[p].value === "string" &&
         req.swagger.params[p].value.includes(",")
-          ? req.swagger.params[p].value.split(",")
+          ? req.swagger.params[p].value.split(",").map(v => v.trim())
+          : typeof req.swagger.params[p].value === "string"
+          ? req.swagger.params[p].value.trim()
           : req.swagger.params[p].value
     }))
     .reduce((acc, val) => ({ ...acc, ...val }), {});
@@ -95,7 +99,10 @@ function searchReviews(req, res) {
 
 function listReviews(req, res) {
   const { params, unknownParams } = validateParams(req);
-  const buildUrl = urlBuilder(req.headers["host"], req.swagger.apiPath);
+  const buildUrl = urlBuilder(
+    req.headers["host"],
+    req.swagger.swaggerObject.basePath + req.swagger.apiPath
+  );
   const results = ReviewsService.getReviews(params, buildUrl);
   const { before, after, ...urlParams } = params;
 
