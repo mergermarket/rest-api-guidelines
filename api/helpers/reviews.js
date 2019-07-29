@@ -1,4 +1,5 @@
 const ReviewIterator = require("./review-iterator");
+const { numeric, alphabetically } = require("./sort");
 
 const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
   const reviewsByAttributes = (attrName, attrs) =>
@@ -23,6 +24,9 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
     ).length > 0;
 
   const reviewsByQuery = (reviews, query) => reviews.filter(byQuery(query));
+
+  const buildCursor = key =>
+    Buffer.from(JSON.stringify(key)).toString("base64");
 
   const getOffsetResults = ({
     start = 0,
@@ -71,13 +75,22 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
         .reduce((acc, field) => ({ ...acc, [field]: item[field] }), {})
     );
 
+  const getReviewsByIds = ({
+    ids = [],
+    size = 10,
+    after = null,
+    before = null,
+    fields = null,
+    sort = null
+  }) => {};
+
   const getReviews = ({
     countries = [],
     size = 10,
     after = null,
     before = null,
     q = "",
-    fields = [],
+    fields = null,
     sort = null
   }) => {
     let allResults =
@@ -89,8 +102,11 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
       allResults = reviewsByQuery(allResults, q);
     }
 
-    if (fields.length > 0) {
-      allResults = returnOnlyFields(allResults, [...fields, "id"]);
+    if (fields && fields.length > 0) {
+      allResults = returnOnlyFields(allResults, [
+        ...(Array.isArray(fields) ? fields : [fields]),
+        "id"
+      ]);
     }
 
     if (sort) {
@@ -101,28 +117,16 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
       switch (key) {
         case "points":
         case "id":
-          allResults.sort((a, b) =>
-            direction === "+"
-              ? parseInt(b[key]) - parseInt(a[key])
-              : parseInt(a[key]) - parseInt(b[key])
-          );
+        case "price":
+          allResults.sort(numeric(direction, key));
           break;
-        case "country":
-        case "province":
-        case "variety":
         case "winery":
         case "region":
-        case "designation":
+        case "province":
         case "geography":
-          allResults.sort((a, b) =>
-            direction === "+"
-              ? a[key].toLowerCase() > b[key].toLowerCase()
-                ? 1
-                : -1
-              : b[key].toLowerCase() > a[key].toLowerCase()
-              ? 1
-              : -1
-          );
+        case "country":
+        case "variety":
+          allResults.sort(alphabetically(direction, key));
           break;
         default:
           break;
@@ -142,162 +146,21 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
     });
   };
 
+  const getReviewById = (id = null, params) => {
+    if (!id) {
+      throw new Error("id not specified");
+    }
+
+    return reviewData.filter(r => r.id === id);
+  };
+
   return {
     reviewsByAttributes,
     reviewsByQuery,
     getOffsetResults,
-    getReviews
+    getReviews,
+    getReviewById
   };
 };
 
 module.exports = ReviewsService;
-
-// const reviews = require("../../data/wine-reviews");
-
-// const buildCursor = key => Buffer.from(JSON.stringify(key)).toString("base64");
-
-// const reviewsByAttributes = (attrName, attrs) =>
-//   reviews
-//     .reduce((acc, review) => {
-//       const matching = (Array.isArray(attrs) ? attrs : [attrs]).map(attr => {
-//         if (attr === review[attrName]) {
-//           return review;
-//         }
-//       });
-//       if (matching.length > 0) {
-//         return [...acc, ...matching];
-//       }
-//     }, [])
-//     .filter(Boolean);
-// // .map(r => ({ id: r.id }));
-
-// const reviewsByIds = (ids = []) => reviewsByAttributes("id", ids);
-
-// const byQuery = q => review =>
-//   Object.keys(review).filter(
-//     k => review[k].toLowerCase().search(q.toLowerCase()) > -1
-//   ).length > 0;
-
-// const reviewsByCountries = ({ countries, q }) =>
-//   q.length > 0
-//     ? reviewsByAttributes("country", countries).filter(byQuery(q))
-//     : reviewsByAttributes("country", countries);
-
-// const getOffsetResults = (beforePos, afterPos, allResults) => {
-//   let offsetResults = [];
-
-//   if (beforePos !== -1 && afterPos !== -1) {
-//     offsetResults = allResults.filter(
-//       (r, idx) => idx > afterPos && idx < beforePos
-//     );
-//   } else if (beforePos === -1 && afterPos !== -1) {
-//     offsetResults = allResults.filter((r, idx) => idx > afterPos);
-//   } else if (beforePos !== -1 && afterPos === -1) {
-//     offsetResults = allResults.filter((r, idx) => idx < beforePos);
-//   } else {
-//     offsetResults = allResults.filter((r, idx) => idx >= afterPos);
-//   }
-
-//   return offsetResults;
-// };
-
-// const reviewsByGeography = (
-//   { countries = [], size = 10, after = 0, before = 0, q = "" },
-//   buildUrl
-// ) => {
-//   const allResults = reviewsByCountries({ countries, size, q });
-
-//   // find
-//   const afterPos = allResults.findIndex(el => el.id === after);
-//   const beforePos = allResults.findIndex(el => el.id === before);
-
-//   const offsetResults = getOffsetResults(beforePos, afterPos, allResults);
-
-//   const sizedResults =
-//     beforePos !== -1 && afterPos !== -1 && offsetResults.length > size
-//       ? offsetResults
-//       : beforePos !== -1
-//       ? offsetResults
-//           .reverse()
-//           .slice(0, size)
-//           .reverse()
-//       : offsetResults.slice(0, size);
-
-//   console.log(afterPos);
-
-//   return {
-//     results: sizedResults,
-//     ...(sizedResults.length > 0 && allResults.length < afterPos
-//       ? {
-//           after: buildUrl({
-//             countries,
-//             size,
-//             q,
-//             after: sizedResults[sizedResults.length - 1].id
-//           })
-//         }
-//       : {}),
-//     ...(sizedResults.length > 0 && allResults[0].id !== sizedResults[0].id
-//       ? { before: buildUrl({ countries, size, q, before: sizedResults[0].id }) }
-//       : {})
-//   };
-// };
-
-// const allReviews = ({ size = 10, after = 0, before = 0, q = "" }, buildUrl) => {
-//   const allResults = q.length > 0 ? reviews.filter(byQuery(q)) : reviews;
-
-//   // find
-//   const afterPos = allResults.findIndex(el => el.id === after);
-//   const beforePos = allResults.findIndex(el => el.id === before);
-
-//   const offsetResults = getOffsetResults(beforePos, afterPos, allResults);
-
-//   const sizedResults =
-//     beforePos !== -1 && afterPos !== -1 && offsetResults.length > size
-//       ? offsetResults
-//       : beforePos !== -1
-//       ? offsetResults
-//           .reverse()
-//           .slice(0, size)
-//           .reverse()
-//       : offsetResults.slice(0, size);
-
-//   console.log(allResults.length);
-//   console.log(
-//     allResults[allResults.length - 1].id === allResults[afterPos + size].id
-//   );
-
-//   return {
-//     results: sizedResults,
-//     ...(sizedResults.length > 0 &&
-//     allResults[allResults.length - 1].id !== allResults[afterPos + size].id
-//       ? {
-//           after: buildUrl({
-//             size,
-//             q,
-//             after: sizedResults[sizedResults.length - 1].id
-//           })
-//         }
-//       : {}),
-//     ...(sizedResults.length > 0 && allResults[0].id !== sizedResults[0].id
-//       ? { before: buildUrl({ size, q, before: sizedResults[0].id }) }
-//       : {})
-//   };
-// };
-
-// const getReviews = (
-//   { countries = [], size = 10, after = 0, before = 0, q = "" },
-//   buildUrl
-// ) => {
-//   if (countries.length > 0) {
-//     return reviewsByGeography({ countries, size, after, before, q }, buildUrl);
-//   } else {
-//     return allReviews({ size, after, before, q }, buildUrl);
-//   }
-// };
-
-// module.exports = {
-//   reviewsByIds,
-//   reviewsByGeography,
-//   getReviews
-// };

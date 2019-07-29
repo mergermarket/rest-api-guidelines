@@ -5,7 +5,7 @@ info:
 # during dev, should point to your local machine
 host: localhost:10010
 # basePath prefixes all resource paths 
-basePath: /
+basePath: /v1
 # 
 schemes:
   # tip: remove http to make production-grade
@@ -42,34 +42,16 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
-  /reviews/search:
-    x-swagger-router-controller: review
-    get:
-      description: Returns paginated list of reviews
-      operationId: searchReviews
-      parameters:
-        - name: country
-          in: query
-          required: false
-          type: string
-        - name: size
-          in: query
-          required: false
-          type: number
-        - name: after
-          in: query
-          required: false
-          type: string
-      responses:
-        "200":
-          description: Success
-          schema:
-            $ref: "#/definitions/ListOfReviewsResponse"
-        # responses may fall through to errors
-        default:
-          description: Error
-          schema:
-            $ref: "#/definitions/ErrorResponse"
+  /countries: 
+    x-swagger-router-controller: country
+    get: 
+        description: Retuns a list of countries
+        operationId: listCountries
+        responses: 
+          "200":
+            description: Success
+            schema:
+              $ref: "#/definitions/EnumResponse"
   /reviews:
     x-swagger-router-controller: review
     get:
@@ -141,4 +123,10 @@ definitions:
       - message
     properties:
       message:
+        type: string
+  EnumResponse: 
+    required:
+      - name
+    properties:
+      name:
         type: string
