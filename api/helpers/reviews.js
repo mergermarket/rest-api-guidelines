@@ -5,7 +5,7 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
     reviewData
       .reduce((acc, review) => {
         const matching = (Array.isArray(attrs) ? attrs : [attrs]).map(attr => {
-          if (attr === review[attrName]) {
+          if (attr.toLowerCase() === review[attrName].toLowerCase()) {
             return review;
           }
         });
@@ -59,31 +59,87 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
         Boolean
       ),
       ...(beforeCursor ? { before: beforeCursor } : {}),
-      ...(afterCursor ? { after: afterCursor } : {})
+      ...(afterCursor ? { after: afterCursor } : {}),
+      total: list.length
     };
   };
+
+  const returnOnlyFields = (list = [], fields = []) =>
+    list.map(item =>
+      Object.keys(item)
+        .filter(k => fields.indexOf(k) !== -1)
+        .reduce((acc, field) => ({ ...acc, [field]: item[field] }), {})
+    );
 
   const getReviews = ({
     countries = [],
     size = 10,
     after = null,
     before = null,
-    q = ""
+    q = "",
+    fields = [],
+    sort = null
   }) => {
-    if (countries.length > 0) {
-      const allResults = reviewsByAttributes("country", countries);
-      const reverse = before;
-      return getOffsetResults({
-        start: after
-          ? allResults.findIndex(el => el.id === after) + 1 // after meaning after the element we found
-          : before
-          ? allResults.findIndex(el => el.id === before) - 1 // before meaning before the element we found
-          : 0,
-        list: allResults,
-        size,
-        reverse
-      });
+    let allResults =
+      countries.length > 0
+        ? reviewsByAttributes("country", countries)
+        : reviewData;
+
+    if (q !== "") {
+      allResults = reviewsByQuery(allResults, q);
     }
+
+    if (fields.length > 0) {
+      allResults = returnOnlyFields(allResults, [...fields, "id"]);
+    }
+
+    if (sort) {
+      const direction = sort.startsWith("-") ? "-" : "+";
+      const key =
+        sort.startsWith("-") || sort.startsWith("+") ? sort.slice(1) : sort;
+
+      switch (key) {
+        case "points":
+        case "id":
+          allResults.sort((a, b) =>
+            direction === "+"
+              ? parseInt(b[key]) - parseInt(a[key])
+              : parseInt(a[key]) - parseInt(b[key])
+          );
+          break;
+        case "country":
+        case "province":
+        case "variety":
+        case "winery":
+        case "region":
+        case "designation":
+        case "geography":
+          allResults.sort((a, b) =>
+            direction === "+"
+              ? a[key].toLowerCase() > b[key].toLowerCase()
+                ? 1
+                : -1
+              : b[key].toLowerCase() > a[key].toLowerCase()
+              ? 1
+              : -1
+          );
+          break;
+        default:
+          break;
+      }
+    }
+
+    const reverse = before;
+    return getOffsetResults({
+      start: after
+        ? allResults.findIndex(el => el.id === after) + 1 // after meaning after the element we found
+        : before
+        ? allResults.findIndex(el => el.id === before) - 1 // before meaning before the element we found
+        : 0,
+      list: allResults,
+      size,
+      reverse
+    });
   };
 
   return {

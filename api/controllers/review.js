@@ -72,18 +72,18 @@ function validateParams(req) {
 }
 
 function getWarnings(unknownParams, { after, before }) {
-  const response = {};
+  const warnings = {};
   if (unknownParams && unknownParams.length > 0) {
-    response[
-      "warning-code-1"
+    warnings[
+      "code-1"
     ] = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
   }
   if (after && before) {
-    response[
-      "warning-code-2"
+    warnings[
+      "code-2"
     ] = `"after" and "before" query parameters cannot be used together, after will take precidence`;
   }
-  return response;
+  return warnings;
 }
 
 function searchReviews(req, res) {
@@ -113,7 +113,7 @@ function listReviews(req, res) {
 function sendSuccessResponse(res, results, warnings) {
   const body = {
     ...results,
-    ...(Object.keys(warnings).length !== 0 ? warnings : {})
+    ...(Object.keys(warnings).length !== 0 ? { warnings } : {})
   };
 
   res.status(200).send(body);

@@ -97,6 +97,15 @@ paths:
           in: query
           required: false
           type: string
+        - name: fields
+          in: query
+          required: false
+          type: string
+          collectionFormat: csv
+        - name: sort
+          in: query
+          required: false
+          type: string
       responses:
         "200":
           description: Success

@@ -132,9 +132,9 @@ describe("get slices of results by offset", () => {
       list: [1, 2, 3, 4, 5]
     });
     expect(reviews.results.length).toEqual(5);
-    expect(reviews.after).toEqual(null);
+    expect(reviews.after).toBeUndefined();
   });
-  test("return a before after cursor", () => {
+  test("return a before cursor", () => {
     const start = 3;
     const size = 2;
     const reverse = true;
@@ -157,7 +157,7 @@ describe("get slices of results by offset", () => {
       reverse
     });
     expect(reviews.results.length).toEqual(3);
-    expect(reviews.before).toEqual(null);
+    expect(reviews.before).toBeUndefined();
   });
   // test("if start and end positions are -1 then return all results", () => {
   //   const after = -1;
