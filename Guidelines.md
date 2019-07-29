@@ -143,7 +143,9 @@ Where possible, stick to common conventions for query parameter names as follows
 
 # Versioning
 
-- Provide a version number at the beginning of the path e.g. `/v1/companies/prime-123`. _Do not_ provide an endpoint that does not contain a version and do not provide a `latest` version. This removes ambiguity around what the API will respond with
+- DO: Provide a version number at the beginning of the path e.g. `/v1/companies/prime-123`
+- DO NOT: Provide an endpoint that does not contain a version
+- DO NOT: Provide a `latest` version. This removes ambiguity around what the API will respond with
 - Versions should be enumerated using whole numbers (`v1`, `v2`) not (`v1`, `v1.1`)
 - Only increment the version when there are breaking changes
 
