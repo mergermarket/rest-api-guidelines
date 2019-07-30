@@ -83,6 +83,7 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
 
   const getReviews = ({
     countries = [],
+    ids = [],
     size = 10,
     after = null,
     before = null,
@@ -93,6 +94,8 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
     let allResults =
       countries.length > 0
         ? reviewsByAttributes("country", countries)
+        : ids.length > 0
+        ? reviewsByAttributes("id", ids)
         : reviewData;
 
     if (q !== "") {

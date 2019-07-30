@@ -1,6 +1,4 @@
 "use strict";
-
-const { getById, list, search } = require("./../services/reviews-service");
 const ReviewsService = require("../helpers/reviews")();
 const querystring = require("query-string");
 const { decodeCursor, encodeCursor } = require("../helpers/cursor");
@@ -71,9 +69,6 @@ function validateParams(req) {
           : req.swagger.params[p].value
     }))
     .reduce((acc, val) => ({ ...acc, ...val }), {});
-
-  console.log(params);
-
   return { unknownParams, params };
 }
 

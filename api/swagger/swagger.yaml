@@ -82,6 +82,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: ids
+          in: query
+          required: false
+          type: string
       responses:
         "200":
           description: Success
