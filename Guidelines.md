@@ -73,16 +73,25 @@ $ curl http://localhost:10010/v1/reviews/269
 ```
 
 - Use the `Accept` in request headers and `Content-Type` in the response headers to indicate the media type of the response. _Most of our APIs respond with JSON so setting the `Content-Type` to `application/json` would be a sensible default in the case that no `Accept` header is passed_
-- If invalid parameters are supplied, respond with a HTTP response code of 400 (bad request), and include a list of valid parameters to help the client make the correct choice. e.g.
+- If invalid parameters are supplied, respond with a HTTP response code of 400. This indicates to the client that it should not try again without altering the request. Also include a list of valid parameters to help the client make the correct choice. e.g.
 
 ```
  $ curl -i http://example-api.com/resources?unknownParam=true
 
  HTTP/1.1 400 Bad Request
 
- {
-     "error": "Unknown parameter `unknownParam`. Valid parameters are: `size`, `before`, `after`..."
- }
+{
+   "message":"There were unknown parameters in the request \"unknownParam\"",
+   "validParams":[
+      "after",
+      "before",
+      "size",
+      "countries",
+      "q",
+      "fields",
+      "sort"
+   ]
+}
 ```
 
 - Use [Consumer Driven Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html) to increase confidence when making API changes. Libraries used within the company for this are [Pact](https://docs.pact.io/) and [Mockingjay](https://github.com/quii/mockingjay-server)

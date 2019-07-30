@@ -3,6 +3,7 @@
 const { getById, list, search } = require("./../services/reviews-service");
 const ReviewsService = require("../helpers/reviews")();
 const querystring = require("query-string");
+const { decodeCursor, encodeCursor } = require("../helpers/cursor");
 
 /*
  'use strict' is not required but helpful for turning syntactical errors into true errors in the program flow
@@ -31,8 +32,7 @@ var util = require("util");
  */
 module.exports = {
   getReviewById,
-  listReviews,
-  searchReviews
+  listReviews
 };
 
 /*
@@ -75,52 +75,59 @@ function validateParams(req) {
   return { unknownParams, params };
 }
 
-function getWarnings(unknownParams, { after, before }) {
-  const warnings = {};
-  if (unknownParams && unknownParams.length > 0) {
-    warnings[
-      "code-1"
-    ] = `There are unrecognised query parameters in the request: ${unknownParams.toString()}, these have been ignored`;
-  }
-  if (after && before) {
-    warnings[
-      "code-2"
-    ] = `"after" and "before" query parameters cannot be used together, after will take precidence`;
-  }
-  return warnings;
-}
-
-function searchReviews(req, res) {
-  const { params, unknownParams } = validateParams(req);
-  search(params).then(results => {
-    sendSuccessResponse(res, results, getWarnings(unknownParams));
-  });
-}
-
 function listReviews(req, res) {
-  const { params, unknownParams } = validateParams(req);
+  const {
+    params: { before, after, ...urlParams },
+    unknownParams
+  } = validateParams(req);
+
+  Object.keys(unknownParams).length !== 0 &&
+    res.status(400).send({
+      message: `There were unknown parameters in the request ${Object.keys(
+        unknownParams
+      ).map(k => `"${unknownParams[k]}"`)}`,
+      validParams: Object.keys(req.swagger.params)
+    });
+
+  after &&
+    before &&
+    res.status(400).send({
+      message: `"after" and "before" query parameters cannot be used together`
+    });
+
   const buildUrl = urlBuilder(
     req.headers["host"],
     req.swagger.swaggerObject.basePath + req.swagger.apiPath
   );
-  const results = ReviewsService.getReviews(params, buildUrl);
-  const { before, after, ...urlParams } = params;
+
+  const results = ReviewsService.getReviews(
+    {
+      ...urlParams,
+      ...(before ? { before: decodeCursor(before) } : {}),
+      ...(after ? { after: decodeCursor(after) } : {})
+    },
+    buildUrl
+  );
 
   if (results.before) {
-    results.before = buildUrl({ ...urlParams, before: results.before.id });
+    results.before = buildUrl({
+      ...urlParams,
+      before: encodeCursor(results.before.id)
+    });
   }
 
   if (results.after) {
-    results.after = buildUrl({ ...urlParams, after: results.after.id });
+    results.after = buildUrl({
+      ...urlParams,
+      after: encodeCursor(results.after.id)
+    });
   }
-
-  sendSuccessResponse(res, results, getWarnings(unknownParams, params));
+  sendSuccessResponse(res, results);
 }
 
-function sendSuccessResponse(res, results, warnings) {
+function sendSuccessResponse(res, results) {
   const body = {
-    ...results,
-    ...(Object.keys(warnings).length !== 0 ? { warnings } : {})
+    ...results
   };
 
   res.status(200).send(body);
