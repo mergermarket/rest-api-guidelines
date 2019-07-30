@@ -46,16 +46,6 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
-  /countries: 
-    x-swagger-router-controller: country
-    get: 
-        description: Retuns a list of countries
-        operationId: listCountries
-        responses: 
-          "200":
-            description: Success
-            schema:
-              $ref: "#/definitions/EnumResponse"
   /reviews:
     x-swagger-router-controller: review
     get:
