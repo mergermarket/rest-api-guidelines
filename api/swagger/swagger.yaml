@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
-  version: "0.0.1"
-  title: Hello World App
+  version: "1"
+  title: Acuris Example API
 # during dev, should point to your local machine
 host: localhost:10010
 # basePath prefixes all resource paths 
@@ -37,6 +37,10 @@ paths:
           schema:
             # a pointer to a definition
             $ref: "#/definitions/IndividualReviewResponse"
+        "404":
+          description: Could not find review
+          schema:
+            $ref: "#/definitions/ErrorResponse"  
         # responses may fall through to errors
         default:
           description: Error
@@ -117,6 +121,28 @@ definitions:
       - id
     properties:
       id:
+        type: string
+      country:
+        type: string
+      province:
+        type: string
+      variety:
+         type: string
+      kind:
+        type: string
+      price:
+        type: string
+      geography:
+        type: string
+      description:
+        type: string
+      designation:
+        type: string
+      winery:
+        type: string
+      region:
+        type: string
+      points:
         type: string
   ErrorResponse:
     required:

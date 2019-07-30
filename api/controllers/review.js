@@ -72,6 +72,8 @@ function validateParams(req) {
     }))
     .reduce((acc, val) => ({ ...acc, ...val }), {});
 
+  console.log(params);
+
   return { unknownParams, params };
 }
 

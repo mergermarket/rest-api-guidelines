@@ -15,7 +15,9 @@ $ npm start
 
 Will open a server on port `10010`.
 
-The sample dataset is a selection of reviews on wines. The main entity is a `review`. Visit `http://localhost:10010/v1/` to get started.
+The sample dataset is a selection of reviews on wines. You can get reviews by id, or search and filter reviews by some of their attributes.
+
+To get started visit http://localhost:10010/docs/#/
 
 # Principles
 
@@ -47,7 +49,7 @@ HTTP/1.1 200 OK
 ```
 
 - Get by ID should have the ID at the end of the uri e.g. http://localhost:10010/v1/reviews/269
-- Prefer to return results as arrays, even if there is only one item. This encourages code resuability where you may be iterating through results
+- Prefer to return results as arrays, even if there is only one item. This means that you only need to implement one code path to deal with responses of the same entity type
 
 ```
 $ curl http://localhost:10010/v1/reviews/269
@@ -152,9 +154,9 @@ Where possible, stick to common conventions for query parameter names as follows
 
 # Versioning
 
-- DO: Provide a version number at the beginning of the path e.g. `/v1/companies/prime-123`
-- DO NOT: Provide an endpoint that does not contain a version
-- DO NOT: Provide a `latest` version. This removes ambiguity around what the API will respond with
+- Provide a version number at the beginning of the path e.g. `/v1/companies/prime-123`
+- Don't provide an endpoint that does not contain a version
+- Don't provide a `latest` version. This removes ambiguity around what the API will respond with
 - Versions should be enumerated using whole numbers (`v1`, `v2`) not (`v1`, `v1.1`)
 - Only increment the version when there are breaking changes
 

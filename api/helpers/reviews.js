@@ -25,9 +25,6 @@ const ReviewsService = (reviewData = require("../../data/wine-reviews")) => {
 
   const reviewsByQuery = (reviews, query) => reviews.filter(byQuery(query));
 
-  const buildCursor = key =>
-    Buffer.from(JSON.stringify(key)).toString("base64");
-
   const getOffsetResults = ({
     start = 0,
     list = [],
