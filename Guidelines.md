@@ -49,29 +49,28 @@ HTTP/1.1 200 OK
 ```
 
 - Get by ID should have the ID at the end of the uri e.g. http://localhost:10010/v1/reviews/269
+- You may also want to implement similar functionality as filter to get multiple ids e.g. http://localhost:10010/v1/reviews?ids=269,123
 - Prefer to return results as arrays, even if there is only one item. This means that you only need to implement one code path to deal with responses of the same entity type
 
 ```
 $ curl http://localhost:10010/v1/reviews/269
 
-{
-  "results": [
-    {
-      "country": "Argentina",
-      "province": "Mendoza Province",
-      "variety": "Cabernet Sauvignon",
-      "kind": "review",
-      "price": "15.0",
-      "geography": "Argentina#Mendoza Province#Agrelo#",
-      "description": "Immediately this smells raisiny, but with time secondary scents of cinnamon and Middle Eastern spices come into play. The body is soft and extracted, with modest acidity. Flavors of baked black fruits, fig paste, chocolate and herbs follow the nose, as does a chocolaty, rich  finish. Drink through 2016.",
-      "id": "269",
-      "designation": "Single Vineyard Reserva",
-      "winery": "Lamadrid",
-      "region": "Agrelo",
-      "points": "88"
-    }
-  ]
-}
+[
+  {
+    "country": "Argentina",
+    "province": "Mendoza Province",
+    "variety": "Cabernet Sauvignon",
+    "kind": "review",
+    "price": "15.0",
+    "geography": "Argentina#Mendoza Province#Agrelo#",
+    "description": "Immediately this smells raisiny, but with time secondary scents of cinnamon and Middle Eastern spices come into play. The body is soft and extracted, with modest acidity. Flavors of baked black fruits, fig paste, chocolate and herbs follow the nose, as does a chocolaty, rich  finish. Drink through 2016.",
+    "id": "269",
+    "designation": "Single Vineyard Reserva",
+    "winery": "Lamadrid",
+    "region": "Agrelo",
+    "points": "88"
+  }
+]
 ```
 
 - Use the `Accept` in request headers and `Content-Type` in the response headers to indicate the media type of the response. _Most of our APIs respond with JSON so setting the `Content-Type` to `application/json` would be a sensible default in the case that no `Accept` header is passed_
@@ -97,20 +96,18 @@ $ curl http://localhost:10010/v1/reviews/269
 ```
 
 - Use [Consumer Driven Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html) to increase confidence when making API changes. Libraries used within the company for this are [Pact](https://docs.pact.io/) and [Mockingjay](https://github.com/quii/mockingjay-server)
+- Ensure all input values are sanitized, this will allow easier comparisons. e.g. `"Value1 !== value1"`
 
-# Query Guidelines
+# Query, Sorting and Pagination
 
 - Query parameters with the same name but multiple values should be logically OR and be comma-separated under the same key in order to keep the URL compact.
   e.g. _show only reviews from German or Spanish wines_ [`http://localhost:10010/v1/reviews?countries=germany,spain`](http://localhost:10010/v1/reviews?countries=germany,spain)
 - Free text search should be accomplished by passing a `q` parameter containing the url encoded string to be searched.
   e.g. _show only reviews that mention "acidity"_ [`http://localhost:10010/v1/reviews?q=acidity`](http://localhost:10010/v1/reviews?q=acidity)
-
-# Sorting, Filtering and Pagination
-
 - Prefer the use of cursoring over pagination, unless there is a valid reason to do so
 - If using pagination instead of cursoring use `size` and `offset` parameters to define the bounds of the pages. If a `size` is not passed, fallback to a sensible default
-- If sorting, use `+` and `-` characters to determine field sort order. e.g. _show all reviews by their review score descending_ [`http://localhost:10010/v1/reviews?sort=+points`](http://localhost:10010/v1/reviews?sort=+points)
-- For more complex querying, for example using `<`, `>`, `!=`, or other logical operations, consider passing the query in the body of the request as illustrated in the [Elasticsearch API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html)
+- If sorting, use `+` and `-` characters to determine field sort order. e.g. _show all reviews by their review score descending_ [`http://localhost:10010/v1/reviews?sort=+points`](http://localhost:10010/v1/reviews?sort=%2Bpoints)
+- For more complex querying and sorting, for example using `<`, `>`, `!=`, or other logical operators, consider passing the query in the body of the request as illustrated in the [Elasticsearch API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html)
 - Consider including a correlation ID in the error response to allow the request to be traced through your system which can either be passed in as a request header or generated on the server by your client. [See example here](https://github.com/mergermarket/lead-admin/blob/359463927cca7b47837b8686ae716713597cdebf/src/server/middleware/correlation-id.ts)
 
 # Errors
