@@ -28,7 +28,15 @@ To get started visit http://localhost:10010/docs/#/
 # General Guidelines
 
 - Use nouns not verbs when describing operations on entities. Allow HTTP verbs to define the operations. e.g. `GET /companies` and `PUT /companies` not `GET /getCompanies`
-- Use plural names to describe resources. For example `/companies` not `/company`. It avoids confusion about whether we’re talking about a single resource or a collection. This is currently not implemented in many of our services. It is also useful if these ‘root’ resource uris return a list of child resources e.g. http://localhost:10010/v1/reviews
+- Use plural names to describe resources. For example `/companies` not `/company`. It avoids confusion about whether we’re talking about a single resource or a collection and more directly maps to how it might be written in code. e.g.
+```
+GET  /companies          -> companies
+POST /companies          -> companies.push(data)
+GET  /companies/1        -> companies[1]
+PUT  /companies/1        -> orders[1] = { name:'foo', mmgid:'prime-123' }
+GET  /companies/1/name   -> orders[1].name
+```
+- It can be useful if these ‘root’ resource uris return a list of child resources e.g. http://localhost:10010/v1/reviews - but may not be required for your use case
 
 ```
 $ curl -i http://localhost:10010/v1/reviews?fields=id&size=2
