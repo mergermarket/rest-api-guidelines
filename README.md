@@ -1,6 +1,4 @@
-At Acuris our business domain mostly centers around the creation, curation and distribution of entities. Our software architecture is made up of decoupled microservices that provide data to front end service via REST-ish APIs that normally expose JSON payloads.
-
-The aim of this document is to provide best practice guidelines for structuring those APIs.
+Guideline for creating RESTful APIs at Acuris, in order to drive consistency between our APIs.
 
 ## Principles
 
