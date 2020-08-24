@@ -1,31 +1,14 @@
-# Acuris API Guidlines
-
 At Acuris our business domain mostly centers around the creation, curation and distribution of entities. Our software architecture is made up of decoupled microservices that provide data to front end service via REST-ish APIs that normally expose JSON payloads.
 
 The aim of this document is to provide best practice guidelines for structuring those APIs.
 
-# Play along at home
+## Principles
 
-This repo includes a reference implementation of an API which was written to conform to these guidelines. The links in this document will work on your machine if you have the application running (requires node > v10)
+- Our APIs should most purely express what our systems do. e.g. _Acuris creates pieces of intelligence, the intelligence service allows clients to view, search and filter pieces of intelligence_.
+- Our APIs should be intuitive, consistent and as simple as possible.
+- Our APIs should have high [affordance](https://en.wikipedia.org/wiki/Affordance), meaning that engineers should easily be able to understand _what_ the API does and _how_ to use it.
 
-```
-$ npm i
-$ npm start
-```
-
-Will open a server on port `10010`.
-
-The sample dataset is a selection of reviews on wines. You can get reviews by id, or search and filter reviews by some of their attributes.
-
-To get started visit http://localhost:10010/docs/#/
-
-# Principles
-
-- Our APIs should most purely express what our systems do. e.g. _Acuris creates Intels, the ISS allows clients to view, search and filter Intels_
-- Our APIs should be intuitive, consistent and as simple as possible
-- Our APIs should have high [affordance](https://en.wikipedia.org/wiki/Affordance), meaning that engineers should easily be able to understand _what_ the API does and _how_ to use it
-
-# General Guidelines
+## General Guidelines
 
 - Use nouns not verbs when describing operations on entities. Allow HTTP verbs to define the operations. e.g. `GET /companies` and `PUT /companies` not `GET /getCompanies`
 - Use plural names to describe resources. For example `/companies` not `/company`. It avoids confusion about whether we’re talking about a single resource or a collection and more directly maps to how it might be written in code. e.g.
@@ -36,32 +19,13 @@ GET  /companies/1        -> companies[1]
 PUT  /companies/1        -> orders[1] = { name:'foo', mmgid:'prime-123' }
 GET  /companies/1/name   -> orders[1].name
 ```
-- It can be useful if these ‘root’ resource uris return a list of child resources e.g. http://localhost:10010/v1/reviews - but may not be required for your use case
-
-```
-$ curl -i http://localhost:10010/v1/reviews?fields=id&size=2
-HTTP/1.1 200 OK
-
-{
-  "results": [
-    {
-      "id": "269"
-    },
-    {
-      "id": "184"
-    }
-  ],
-  "after": "http://localhost:10010/reviews?after=184&fields=id&size=2",
-  "total": 425
-}
-```
-
-- Get by ID should have the ID at the end of the uri e.g. http://localhost:10010/v1/reviews/269
-- You may also want to implement similar functionality as filter to get multiple ids e.g. http://localhost:10010/v1/reviews?ids=269,123
+- Resources should be hyperlinked to related resources so that the API is discoverable.
+- Get by ID should have the ID at the end of the uri e.g. http://api.example.com/v1/reviews/269
+- You may also want to implement similar functionality as filter to get multiple ids e.g. http://api.example.com/v1/reviews?ids=269,123
 - Prefer to return results as arrays, even if there is only one item. This means that you only need to implement one code path to deal with responses of the same entity type
 
 ```
-$ curl http://localhost:10010/v1/reviews/269
+$ curl http://api.example.com/v1/reviews/269
 
 [
   {
@@ -85,7 +49,7 @@ $ curl http://localhost:10010/v1/reviews/269
 - If invalid parameters are supplied, respond with a HTTP response code of 400. This indicates to the client that it should not try again without altering the request. Also include a list of valid parameters to help the client make the correct choice. e.g.
 
 ```
- $ curl -i http://example-api.com/resources?unknownParam=true
+ $ curl -i http://api.example.com/resources?unknownParam=true
 
  HTTP/1.1 400 Bad Request
 
@@ -109,14 +73,14 @@ $ curl http://localhost:10010/v1/reviews/269
 # Query, Sorting and Pagination
 
 - Query parameters with the same name but multiple values should be logically OR and be comma-separated under the same key in order to keep the URL compact.
-  e.g. _show only reviews from German or Spanish wines_ [`http://localhost:10010/v1/reviews?countries=germany,spain`](http://localhost:10010/v1/reviews?countries=germany,spain)
+  e.g. _show only reviews from German or Spanish wines_: `http://api.example.com/v1/reviews?countries=germany,spain`
 - Free text search should be accomplished by passing a `q` parameter containing the url encoded string to be searched.
-  e.g. _show only reviews that mention "acidity"_ [`http://localhost:10010/v1/reviews?q=acidity`](http://localhost:10010/v1/reviews?q=acidity)
+  e.g. _show only reviews that mention "acidity"_ `http://api.example.com/v1/reviews?q=acidity`
 - Prefer the use of cursoring over pagination, unless there is a valid reason to do so
 - If using pagination instead of cursoring use `size` and `offset` parameters to define the bounds of the pages. If a `size` is not passed, fallback to a sensible default
-- If sorting, use `+` and `-` characters to determine field sort order. e.g. _show all reviews by their review score descending_ [`http://localhost:10010/v1/reviews?sort=+points`](http://localhost:10010/v1/reviews?sort=%2Bpoints)
+- If sorting, use `+` and `-` characters to determine field sort order. e.g. _show all reviews by their review score descending_: `http://api.example.com/v1/reviews?sort=+points`
 - For more complex querying and sorting, for example using `<`, `>`, `!=`, or other logical operators, consider passing the query in the body of the request as illustrated in the [Elasticsearch API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html)
-- Consider including a correlation ID in the error response to allow the request to be traced through your system which can either be passed in as a request header or generated on the server by your client. [See example here](https://github.com/mergermarket/lead-admin/blob/359463927cca7b47837b8686ae716713597cdebf/src/server/middleware/correlation-id.ts)
+- Consider including a correlation ID (`X-Correlation-Id`) in the error response to allow the request to be traced through your system which can either be passed in as a request header or generated on the server by your client.
 
 # Errors
 
@@ -155,7 +119,7 @@ Where possible, stick to common conventions for query parameter names as follows
 # Performance and Cacheability
 
 - Gzip responses where possible - unless the compression causes performance bottlenecks on the server
-- Prefer caching on the server over caching on the client. In general our APIs dont receive enough traffic to worry too much about client-side caching. However, as a rule GET requests should always be cacheable. If caching is required at the client level then use an ETAG to inform the client when a resource has changed
+- Prefer caching on the server over caching on the client. In general our APIs don't receive enough traffic to worry too much about client-side caching. However, as a rule GET requests should always be cacheable. If caching is required at the client level then use an ETAG to inform the client when a resource has changed
 
 # Versioning
 
@@ -165,7 +129,7 @@ Where possible, stick to common conventions for query parameter names as follows
 - Versions should be enumerated using whole numbers (`v1`, `v2`) not (`v1`, `v1.1`)
 - Only increment the version when there are breaking changes
 
-# Common consitencies
+# Common consistencies
 
 - Any custom headers should follow the Hyphenated-Pascal-Case convention of standard HTTP headers. e.g. `X-Correlation-Id`
 - A trailing slash should not provide any implicit or explicit functionality. e.g. `/companies` and `/companies/` should return the same response
