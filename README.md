@@ -14,8 +14,8 @@ Guideline for creating RESTful APIs at Acuris, in order to drive consistency bet
 GET  /companies          -> companies
 POST /companies          -> companies.push(data)
 GET  /companies/1        -> companies[1]
-PUT  /companies/1        -> orders[1] = { name:'foo', mmgid:'prime-123' }
-GET  /companies/1/name   -> orders[1].name
+PUT  /companies/1        -> companies[1] = { name:'foo', sector: 'bar' }
+GET  /companies/1/name   -> companies[1].name
 ```
 - Resources should be hyperlinked to related resources so that the API is discoverable.
 - Get by ID should have the ID at the end of the uri e.g. http://api.example.com/v1/reviews/269
