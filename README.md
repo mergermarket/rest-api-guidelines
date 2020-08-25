@@ -78,8 +78,8 @@ $ curl http://api.example.com/v1/reviews/269
 
 ## Query, Sorting and Pagination
 
-- Query parameters with the same name but multiple values should be logically OR and be comma-separated under the same key in order to keep the URL compact.
-  e.g. _show only reviews from German or Spanish wines_: `http://api.example.com/v1/reviews?countries=germany,spain`
+- Query parameters with the same name but multiple values should be logically OR and be sent as multiple query values ([as-per the widely-supported, de-facto standard](https://stackoverflow.com/a/24728298)) so clients don't have to build strings and servers don't have to write code to parse them
+  e.g. _show only reviews from German or Spanish wines_: `http://api.example.com/v1/reviews?countries=germany&countries=spain`.
 - Free text search should be accomplished by passing a `q` parameter containing the url encoded string to be searched.
   e.g. _show only reviews that mention "acidity"_ `http://api.example.com/v1/reviews?q=acidity`
 - Prefer the use of cursoring over pagination, unless there is a valid reason to do so
