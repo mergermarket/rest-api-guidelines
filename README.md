@@ -75,7 +75,7 @@ APIs should default to return responses encoded as [JSON](https://www.json.org/j
 
 The JSON should follow the [JSON HAL (Hypertext Application Language)](https://tools.ietf.org/html/draft-kelly-json-hal-08) specification.
 
-In order to make the API consumable by any client that understands JSON and not require a HAL capable client, the `Content-Type` of the response should be `application/hal+json` only if the client sends that media type in the `Accept` request header. Otherwise the same content should be returned with `Content-Type: application/json`. Furthermore advanced HAL features like templated links should be avoided.
+In order to make the API consumable by any client that understands JSON and not require a HAL capable client, the `Content-Type` of the response should be `application/hal+json` only if the client sends that media type in the `Accept` request header. Otherwise the same content should be returned with `Content-Type: application/json`. Furthermore advanced HAL features like templated links should be avoided so that APIs are easy to consume by clients that are not HAL aware.
 
 ## Query, Sorting and Pagination
 
