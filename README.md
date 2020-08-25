@@ -43,7 +43,6 @@ $ curl http://api.example.com/v1/reviews/269
 ]
 ```
 
-- Use the `Accept` in request headers and `Content-Type` in the response headers to indicate the media type of the response. _Most of our APIs respond with JSON so setting the `Content-Type` to `application/json` would be a sensible default in the case that no `Accept` header is passed_
 - If invalid parameters are supplied, respond with a HTTP response code of 400. This indicates to the client that it should not try again without altering the request. Also include a list of valid parameters to help the client make the correct choice. e.g.
 
 ```
@@ -68,7 +67,15 @@ $ curl http://api.example.com/v1/reviews/269
 - Use [Consumer Driven Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html) to increase confidence when making API changes. Libraries used within the company for this are [Pact](https://docs.pact.io/) and [Mockingjay](https://github.com/quii/mockingjay-server)
 - Ensure all input values are sanitized, this will allow easier comparisons. e.g. `"Value1 !== value1"`
 
+## Media types
 
+APIs should default to return responses encoded as [JSON](https://www.json.org/json-en.html). Where APIs support multiple return formats they should use the `Accept` header for negotiation as defined by the HTTP spec, but this should not be required to return the default format.
+
+### Hypertext Application Language
+
+The JSON should follow the [JSON HAL (Hypertext Application Language)](https://tools.ietf.org/html/draft-kelly-json-hal-08) specification.
+
+In order to make the API consumable by any client that understands JSON and not require a HAL capable client, the `Content-Type` of the response should be `application/hal+json` only if the client sends that media type in the `Accept` request header. Otherwise the same content should be returned with `Content-Type: application/json`. Furthermore advanced HAL features like templated links should be avoided.
 
 ## Query, Sorting and Pagination
 
