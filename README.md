@@ -1,6 +1,4 @@
-At Acuris our business domain mostly centers around the creation, curation and distribution of entities. Our software architecture is made up of decoupled microservices that provide data to front end service via REST-ish APIs that normally expose JSON payloads.
-
-The aim of this document is to provide best practice guidelines for structuring those APIs.
+Guideline for creating RESTful APIs at Acuris, in order to drive consistency between our APIs.
 
 ## Principles
 
@@ -16,8 +14,8 @@ The aim of this document is to provide best practice guidelines for structuring 
 GET  /companies          -> companies
 POST /companies          -> companies.push(data)
 GET  /companies/1        -> companies[1]
-PUT  /companies/1        -> orders[1] = { name:'foo', mmgid:'prime-123' }
-GET  /companies/1/name   -> orders[1].name
+PUT  /companies/1        -> companies[1] = { name:'foo', sector: 'bar' }
+GET  /companies/1/name   -> companies[1].name
 ```
 - Resources should be hyperlinked to related resources so that the API is discoverable.
 - Get by ID should have the ID at the end of the uri e.g. http://api.example.com/v1/reviews/269
@@ -70,7 +68,9 @@ $ curl http://api.example.com/v1/reviews/269
 - Use [Consumer Driven Contracts](https://martinfowler.com/articles/consumerDrivenContracts.html) to increase confidence when making API changes. Libraries used within the company for this are [Pact](https://docs.pact.io/) and [Mockingjay](https://github.com/quii/mockingjay-server)
 - Ensure all input values are sanitized, this will allow easier comparisons. e.g. `"Value1 !== value1"`
 
-# Query, Sorting and Pagination
+
+
+## Query, Sorting and Pagination
 
 - Query parameters with the same name but multiple values should be logically OR and be comma-separated under the same key in order to keep the URL compact.
   e.g. _show only reviews from German or Spanish wines_: `http://api.example.com/v1/reviews?countries=germany,spain`
@@ -82,12 +82,12 @@ $ curl http://api.example.com/v1/reviews/269
 - For more complex querying and sorting, for example using `<`, `>`, `!=`, or other logical operators, consider passing the query in the body of the request as illustrated in the [Elasticsearch API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html)
 - Consider including a correlation ID (`X-Correlation-Id`) in the error response to allow the request to be traced through your system which can either be passed in as a request header or generated on the server by your client.
 
-# Errors
+## Errors
 
 - If a request responds with an error, present a meaningful error in the response by defining an error object in the JSON containing either an error message, or a _specific error code_ if the API is public and exposing the internals is undesirable
 
 ```
-$ curl -i http://example-api.com/error
+$ curl -i http://api.example.com/error
 HTTP/1.1 504 Internal Server Error
 
 {
@@ -103,7 +103,7 @@ HTTP/1.1 504 Internal Server Error
   - If a downstream service is not available. Use the `504` status to inform the client that the service is temporarily unavailable and the request should be retried
 - If rate limiting is required use the `429` error code along with a `Retry-After` header
 
-# Common Query Parameters
+## Common Query Parameters
 
 Where possible, stick to common conventions for query parameter names as follows:
 
@@ -116,12 +116,12 @@ Where possible, stick to common conventions for query parameter names as follows
 | `offset`             | if using pagination, provide the offset of the first item and use in conjunction with `size` to provide the number of items per page                                                                      |
 | `size`               | the number of items returned in the response                                                                                                                                                              |
 
-# Performance and Cacheability
+## Performance and Cacheability
 
 - Gzip responses where possible - unless the compression causes performance bottlenecks on the server
 - Prefer caching on the server over caching on the client. In general our APIs don't receive enough traffic to worry too much about client-side caching. However, as a rule GET requests should always be cacheable. If caching is required at the client level then use an ETAG to inform the client when a resource has changed
 
-# Versioning
+## Versioning
 
 - Provide a version number at the beginning of the path e.g. `/v1/companies/prime-123`
 - Don't provide an endpoint that does not contain a version
@@ -129,7 +129,7 @@ Where possible, stick to common conventions for query parameter names as follows
 - Versions should be enumerated using whole numbers (`v1`, `v2`) not (`v1`, `v1.1`)
 - Only increment the version when there are breaking changes
 
-# Common consistencies
+## Common consistencies
 
 - Any custom headers should follow the Hyphenated-Pascal-Case convention of standard HTTP headers. e.g. `X-Correlation-Id`
 - A trailing slash should not provide any implicit or explicit functionality. e.g. `/companies` and `/companies/` should return the same response
