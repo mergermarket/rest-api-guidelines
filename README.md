@@ -87,7 +87,7 @@ $ curl http://api.example.com/v1/reviews/269
 - If a request responds with an error, present a meaningful error in the response by defining an error object in the JSON containing either an error message, or a _specific error code_ if the API is public and exposing the internals is undesirable
 
 ```
-$ curl -i http://example-api.com/error
+$ curl -i http://api.example.com/error
 HTTP/1.1 504 Internal Server Error
 
 {
