@@ -1,5 +1,11 @@
 Guideline for creating RESTful APIs at Acuris, in order to drive consistency between our APIs.
 
+## Table of Contents
+{:.no_toc}
+
+* TOC 
+{:toc}
+
 ## Principles
 
 - Our APIs should most purely express what our systems do. e.g. _Acuris creates pieces of intelligence, the intelligence service allows clients to view, search and filter pieces of intelligence_.
