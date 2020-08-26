@@ -26,29 +26,30 @@ GET  /companies/1/name   -> companies[1].name
 - Resources should be hyperlinked to related resources so that the API is discoverable.
 - Get by ID should have the ID at the end of the uri e.g. http://api.example.com/v1/reviews/269
 - You may also want to implement similar functionality as filter to get multiple ids e.g. http://api.example.com/v1/reviews?ids=269,123
-- Prefer to return results as arrays, even if there is only one item. This means that you only need to implement one code path to deal with responses of the same entity type
-
+- Prefer to return results as arrays for collections (regardless of the number of items in the collection), and single objects where a specific item has been requested:
 ```
-$ curl http://api.example.com/v1/reviews/269
+$ curl https://api.example.com/v1/reviews
 
 [
   {
     "country": "Argentina",
-    "province": "Mendoza Province",
     "variety": "Cabernet Sauvignon",
-    "kind": "review",
+    "description": "Good glugger.",
     "price": "15.0",
-    "geography": "Argentina#Mendoza Province#Agrelo#",
-    "description": "Immediately this smells raisiny, but with time secondary scents of cinnamon and Middle Eastern spices come into play. The body is soft and extracted, with modest acidity. Flavors of baked black fruits, fig paste, chocolate and herbs follow the nose, as does a chocolaty, rich  finish. Drink through 2016.",
-    "id": "269",
-    "designation": "Single Vineyard Reserva",
-    "winery": "Lamadrid",
-    "region": "Agrelo",
     "points": "88"
   }
 ]
-```
 
+$ curl https://api.example.com/v1/reviews/269
+
+{
+  "country": "Argentina",
+  "variety": "Cabernet Sauvignon",
+  "description": "Good glugger.",
+  "price": "15.0",
+  "points": "88"
+}
+```
 - Use the `Accept` in request headers and `Content-Type` in the response headers to indicate the media type of the response. _Most of our APIs respond with JSON so setting the `Content-Type` to `application/json` would be a sensible default in the case that no `Accept` header is passed_
 - If invalid parameters are supplied, respond with a HTTP response code of 400. This indicates to the client that it should not try again without altering the request. Also include a list of valid parameters to help the client make the correct choice. e.g.
 
