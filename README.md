@@ -85,7 +85,7 @@ $ curl http://api.example.com/v1/reviews/269
 - Prefer the use of cursoring over pagination, unless there is a valid reason to do so
 - If using pagination instead of cursoring use `size` and `offset` parameters to define the bounds of the pages. If a `size` is not passed, fallback to a sensible default
 - If sorting, use `+` and `-` characters to determine field sort order. e.g. _show all reviews by their review score descending_: `http://api.example.com/v1/reviews?sort=+points`
-- For more complex querying and sorting, for example using `<`, `>`, `!=`, or other logical operators, consider passing the query in the body of the request as illustrated in the [Elasticsearch API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html)
+- For more complex querying and sorting, for example using `<`, `>`, `!=`, or other logical operators, consider passing the query in the body of the request as illustrated in the [Elasticsearch API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html#search-search-api-request-body)
 - Consider including a correlation ID (`X-Correlation-Id`) in the error response to allow the request to be traced through your system which can either be passed in as a request header or generated on the server by your client.
 
 ## Errors
